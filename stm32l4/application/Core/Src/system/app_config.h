@@ -16,13 +16,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "cmsis_os2.h"
+#include "system.h"
 
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
 
-#define APP_VERSION                  "1.0.0"
+#define APP_VERSION                  "0.01"
 #define DEVICE_NAME                  "TigerShark"
+
+#define delay(ms)                    osDelay(ms)
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */

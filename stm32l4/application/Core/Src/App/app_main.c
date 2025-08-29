@@ -9,8 +9,10 @@
 /******************************************************************************/
 
 #include "stm32l4xx_hal.h"
+#include "cmsis_os2.h"
 #include "app_config.h"
 #include "log.h"
+#include "ui_control.h"
 #include "app_main.h"
 
 /******************************************************************************/
@@ -51,13 +53,18 @@ typedef struct {
 /*                              PRIVATE DATA                                  */
 /******************************************************************************/
 
-
+static osThreadId_t main_task_handle;
+static const osThreadAttr_t main_task_attributes = {
+    .name = "main_task",
+    .priority = (osPriority_t) osPriorityNormal,
+    .stack_size = 4096
+};
 
 /******************************************************************************/
 /*                              EXPORTED DATA                                 */
 /******************************************************************************/
 
-
+system_config_t system_config;
 
 /******************************************************************************/
 /*                                FUNCTIONS                                   */
@@ -68,6 +75,17 @@ typedef struct {
 /******************************************************************************/
 
 /*!
+ * @brief  Task for the main application
+ */
+static void main_task(void *argument) {
+    (void) argument;
+
+    while (1) {
+        delay(1000);
+    }
+}
+
+/*!
  * @brief  Initialize the main application
  */
 void app_main_init(void) {
@@ -76,4 +94,19 @@ void app_main_init(void) {
     LOG_INFO("---------- Application %s Version %s ----------", DEVICE_NAME, APP_VERSION);
     LOG_INFO("================================================");
     LOG_INFO("");
+
+    memset(&system_config, 0, sizeof(system_config_t));
+    if (system_config.magic_number == MAGIC_NUMBER) {
+        LOG_INFO("Valid system configuration found");
+    }
+    else {
+        LOG_WARN("Invalid system configuration. Set default values");
+        system_config.magic_number = MAGIC_NUMBER;
+        sprintf(system_config.user_name, "Juergensen Marine");
+        system_config.manufacturer_id = JUER_MARINE_ID;
+        system_config.screen_rotate = 0;
+    }
+
+    main_task_handle = osThreadNew(main_task, NULL, &main_task_attributes);
+    ui_control_init();
 }
