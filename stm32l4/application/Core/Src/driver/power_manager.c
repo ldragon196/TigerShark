@@ -83,6 +83,14 @@
 /******************************************************************************/
 
 /*!
+ * @brief  Change lcd brightness
+ */
+void power_change_lcd_brightness(uint8_t percentage) {
+    int brightness = (percentage * 499) / 100;    /* Timer count max 499 */
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, brightness);
+}
+
+/*!
  * @brief  Turn esp32 wifi on/off
  */
 void power_wifi_control(bool on) {
@@ -123,6 +131,7 @@ void power_board_on(void) {
     LCD_ON();
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+    power_change_lcd_brightness(100);    /* Max brightness at start */
 }
 
 /*!

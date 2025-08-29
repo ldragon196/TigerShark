@@ -106,7 +106,7 @@ static void ui_control_task(void *argument) {
                 break;
 
             case SCREEN_HOME_ID:
-                delay(10);
+                delay(1000);
                 break;
 
             default:

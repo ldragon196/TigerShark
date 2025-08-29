@@ -15,6 +15,7 @@
 #include "power_manager.h"
 #include "user_intf.h"
 #include "ui_control.h"
+#include "main_process.h"
 #include "app_main.h"
 
 /******************************************************************************/
@@ -27,12 +28,7 @@
 /*                              PRIVATE DATA                                  */
 /******************************************************************************/
 
-static osThreadId_t main_task_handle;
-static const osThreadAttr_t main_task_attributes = {
-    .name = "main_task",
-    .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 4096
-};
+
 
 /******************************************************************************/
 /*                              EXPORTED DATA                                 */
@@ -47,19 +43,6 @@ system_config_t system_config;
 
 
 /******************************************************************************/
-
-/*!
- * @brief  Task for the main application
- */
-static void main_task(void *argument) {
-    (void) argument;
-    int led_state = 0;
-
-    while (1) {
-        delay(5000);
-        user_intf_set_led(led_state++);
-    }
-}
 
 /*!
  * @brief  Initialize the main application
@@ -91,7 +74,5 @@ void app_main_init(void) {
     power_board_on();
     user_intf_init();
     ui_control_init();
-
-    /* Create task for main process */
-    main_task_handle = osThreadNew(main_task, NULL, &main_task_attributes);
+    main_process_init();
 }

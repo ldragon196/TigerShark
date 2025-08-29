@@ -51,11 +51,15 @@ typedef struct {
     ext_slot_t slot_table;
 } __attribute__((packed)) ext_general_cfg_t;
 
-typedef uint8_t manufacture_id_t;
 enum {
     JUER_MARINE_ID = 0,
     REB_TEK_ID,
     MANUFACTURER_COUNT
+};
+
+enum {
+    SURFACE_CONTROL_STATE = 0,
+    DIVE_CONTROL_STATE,
 };
 
 typedef struct {
@@ -63,11 +67,17 @@ typedef struct {
     char user_name[64];
 
     uint8_t screen_rotate;
-    manufacture_id_t manufacturer_id;
+    uint8_t manufacturer_id;
 
     uint16_t menu_timeout_sec;
     uint16_t power_off_timeout_sec;
 } system_config_t;
+
+typedef struct {
+    int surface_time_sec;
+    int dive_time_sec;
+    uint8_t dive_state;
+} system_status_t;
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */
@@ -80,6 +90,7 @@ typedef struct {
 /******************************************************************************/
 
 extern system_config_t system_config;
+extern system_status_t system_status;
 
 /******************************************************************************/
 /*                                FUNCTIONS                                   */

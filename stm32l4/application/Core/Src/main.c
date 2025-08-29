@@ -1222,7 +1222,10 @@ void StartDefaultTask(void *argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+  if (htim == &htim6)
+  {
+    HAL_IncTick();
+  }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM16)
   {
