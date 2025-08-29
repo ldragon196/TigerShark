@@ -13,6 +13,7 @@
 #include "app_config.h"
 #include "log.h"
 #include "lv_port_disp.h"
+#include "power_manager.h"
 
 #include "ui_splash.h"
 #include "ui_control.h"
@@ -47,7 +48,7 @@ static int ui_current_screen = SCREEN_INIT_ID;
 /*                              EXPORTED DATA                                 */
 /******************************************************************************/
 
-extern TIM_HandleTypeDef htim1;
+
 
 /******************************************************************************/
 /*                                FUNCTIONS                                   */
@@ -118,10 +119,6 @@ static void ui_control_task(void *argument) {
  * @brief  Initialize UI control
  */
 void ui_control_init(void) {
-    HAL_GPIO_WritePin(LCD_PW_EN_GPIO_Port, LCD_PW_EN_Pin, GPIO_PIN_SET);
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
-
     /* Create task for lvgl handle */
     ui_control_task_handle = osThreadNew(ui_control_task, NULL, &ui_control_task_attributes);
     lvgl_task_handle = osThreadNew(lvgl_task, NULL, &lvgl_task_attributes);

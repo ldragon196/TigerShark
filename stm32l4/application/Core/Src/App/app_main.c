@@ -12,6 +12,7 @@
 #include "cmsis_os2.h"
 #include "app_config.h"
 #include "log.h"
+#include "power_manager.h"
 #include "ui_control.h"
 #include "app_main.h"
 
@@ -95,6 +96,7 @@ void app_main_init(void) {
     LOG_INFO("================================================");
     LOG_INFO("");
 
+    /* Reload configuration */
     memset(&system_config, 0, sizeof(system_config_t));
     if (system_config.magic_number == MAGIC_NUMBER) {
         LOG_INFO("Valid system configuration found");
@@ -107,6 +109,10 @@ void app_main_init(void) {
         system_config.screen_rotate = 0;
     }
 
-    main_task_handle = osThreadNew(main_task, NULL, &main_task_attributes);
+    /* Components intialization */
+    power_board_on();
     ui_control_init();
+
+    /* Create task for main process */
+    main_task_handle = osThreadNew(main_task, NULL, &main_task_attributes);
 }
