@@ -13,6 +13,7 @@
 #include "app_config.h"
 #include "log.h"
 #include "power_manager.h"
+#include "user_intf.h"
 #include "ui_control.h"
 #include "app_main.h"
 
@@ -20,35 +21,7 @@
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
 
-#define FLASH_SECTOR_SIZE     (0x800)
 
-#define ETX_APP_FLASH_ADDR    (0x0800A000)
-#define ETX_CONFIG_FLASH_ADDR (ETX_APP_FLASH_ADDR - FLASH_SECTOR_SIZE)
-#define ETX_APP_NPAGE         ((ETX_APP_FLASH_ADDR - 0x08000000) / FLASH_SECTOR_SIZE)
-
-/* Reboot reason */
-#define ETX_FIRST_TIME_BOOT   (0xFFFFFFFF)     /* First time boot */
-#define ETX_NORMAL_BOOT       (0xBEEFFEED)     /* Normal Boot */
-#define ETX_OTA_DONE_BOOT     (0xBEEFFDDE)     /* OTA done */
-#define ETX_OTA_REQUEST       (0xDEADBEEF)     /* OTA request by application */
-#define ETX_LOAD_PREV_APP     (0xFACEFADE)     /* App requests to load the previous version */
-
-#define OTA_FIRMWARE_ADDRESS  (0x10000)
-#define OTA_PART_LENGTH       (1024)
-#define MAGIC_NUMBER          (0xAA555AA5)
-
-typedef void (*application_func_t)(void);
-
-typedef struct {
-    int32_t fw_size;
-    uint32_t fw_crc;
-    uint32_t reserved1;
-} __attribute__((packed)) ext_slot_t;
-
-typedef struct {
-    uint32_t reboot_cause;
-    ext_slot_t slot_table;
-} __attribute__((packed)) ext_general_cfg_t;
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */
@@ -80,9 +53,11 @@ system_config_t system_config;
  */
 static void main_task(void *argument) {
     (void) argument;
+    int led_state = 0;
 
     while (1) {
-        delay(1000);
+        delay(5000);
+        user_intf_set_led(led_state++);
     }
 }
 
@@ -107,10 +82,14 @@ void app_main_init(void) {
         sprintf(system_config.user_name, "Juergensen Marine");
         system_config.manufacturer_id = JUER_MARINE_ID;
         system_config.screen_rotate = 0;
+
+        system_config.menu_timeout_sec = 30;
+        system_config.power_off_timeout_sec = 120;
     }
 
-    /* Components intialization */
+    /* Components initialization */
     power_board_on();
+    user_intf_init();
     ui_control_init();
 
     /* Create task for main process */
