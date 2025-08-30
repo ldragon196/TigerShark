@@ -8,6 +8,7 @@
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
 
+
 #include "stm32l4xx_hal.h"
 #include "cmsis_os2.h"
 #include "app_config.h"
@@ -68,6 +69,9 @@ void app_main_init(void) {
 
         system_config.menu_timeout_sec = 30;
         system_config.power_off_timeout_sec = 120;
+
+        system_config.screen_mode = BIG_NUMBER_MODE;
+        system_config.user_setting.flags.dark_mode = 1;
     }
 
     /* Components initialization */

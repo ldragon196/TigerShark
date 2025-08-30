@@ -1,11 +1,15 @@
 /*
- *  app_config.h
+ *  ui_big_number.h
  *
- *  Created on: Aug 28, 2025
+ *  Created on: Aug 30, 2025
  */
 
-#ifndef _APP_CONFIG_H_
-#define _APP_CONFIG_H_
+#ifndef _UI_BIG_NUMBER_H_
+#define _UI_BIG_NUMBER_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************/
 
@@ -13,22 +17,13 @@
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-#include "cmsis_os2.h"
-#include "system.h"
+
 
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
 
-#define APP_VERSION                  "2.01"
-#define DEVICE_NAME                  "TigerShark"
 
-#define delay(ms)                    osDelay(ms)
-#define current_ms()                 osKernelGetTickCount()
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */
@@ -46,8 +41,45 @@
 /*                                FUNCTIONS                                   */
 /******************************************************************************/
 
+/*!
+ * @brief  Initialize the big number mode screen
+ * @param  None
+ * @retval None
+ */
+void ui_big_number_init(void);
 
+/*!
+ * @brief  Set the big number mode screen
+ * @param  None
+ * @retval None
+ */
+void ui_big_number_loadscreen(void);
+
+/**
+ * @brief  Set menu text
+ * @param  text: Text menu to display
+ * @retval None
+ */
+void ui_big_number_set_menu_text(char *text);
+
+/**
+ * @brief  Update big number screen
+ * @param  None
+ * @retval None
+ */
+void ui_big_number_update(void);
+
+/**
+ * @brief  Update blink (should call every 500ms)
+ * @param  None
+ * @retval None
+ */
+void ui_big_number_blink(void);
 
 /******************************************************************************/
 
-#endif /* _APP_CONFIG_H_ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _UI_BIG_NUMBER_H_ */
