@@ -35,7 +35,6 @@
 #define ETX_LOAD_PREV_APP     (0xFACEFADE)     /* App requests to load the previous version */
 
 #define OTA_FIRMWARE_ADDRESS  (0x10000)
-#define OTA_PART_LENGTH       (1024)
 #define MAGIC_NUMBER          (0xAA555AA5)
 
 typedef void (*application_func_t)(void);
@@ -74,6 +73,7 @@ enum {
     OLD_MAN_ADV_MODE,
     FIXED_SET_POINT_MODE,
     LEGACY_MODE,
+    SCREEN_MODE_COUNT,
 };
 
 enum {
@@ -107,7 +107,7 @@ typedef struct {
 typedef struct {
     uint16_t O2;
     uint16_t he;
-} ui_gas_t;
+} gas_mix_t;
 
 typedef struct {
     uint32_t total_number_dives;
@@ -153,11 +153,12 @@ typedef struct {
 
     uint8_t screen_rotate;
     uint8_t manufacturer_id;
+    uint8_t screen_mode;            /* See enum above BIG_NUMBER_MODE,... */
+    uint8_t set_point;              /* Default set point */
 
     uint16_t menu_timeout_sec;
     uint16_t power_off_timeout_sec;
 
-    uint8_t screen_mode;            /* See enum above BIG_NUMBER_MODE,... */
     user_setting_t user_setting;
 } system_config_t;
 
@@ -176,7 +177,7 @@ typedef struct {
     ui_sensor_t sensor[O2_SENSOR_NUM];
     ui_setpoint_t set_point;
     ui_tts_t time_to_surface;
-    ui_gas_t gas_mix;
+    gas_mix_t gas_mix;
 
     last_dive_t last_dive_info;
 } system_status_t;

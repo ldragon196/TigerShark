@@ -98,6 +98,7 @@ static uint32_t sum_valid_sensor = 0;
 static void ui_dashboard_static_init(void)
 {
     panel_sensor[BIG_NUMBER_S1] = lv_obj_create(screen_dashboard, NULL);
+
     lv_obj_set_width(panel_sensor[BIG_NUMBER_S1], 98);
     lv_obj_set_height(panel_sensor[BIG_NUMBER_S1], 48);
     lv_obj_align(panel_sensor[BIG_NUMBER_S1], NULL, LV_ALIGN_IN_TOP_MID, -102, 6);
@@ -302,6 +303,49 @@ static void ui_big_number_set_idle(bool idle) {
     }
 }
 
+/**
+ * @brief  Update blink (should call every 500ms)
+ */
+static void ui_big_number_blink(void) {
+    int i;
+
+    warining_timeout++;
+    if (warining_timeout > 12) {
+        warining_timeout = 0;
+    }
+
+    for (i = 0; i < O2_SENSOR_NUM; i++) {
+        if (system_status.sensor[i].blink) {
+            if (dashboard_blink) {
+                if (system_status.sensor[i].data < system_status.set_point.data) {
+                    lv_obj_set_state(panel_sensor[i], SENSOR_LOW_STATE);
+                    lv_obj_set_state(dashboard_labels[i], SENSOR_LOW_STATE);
+                }
+                else {
+                    lv_obj_set_state(panel_sensor[i], SENSOR_HIGH_STATE);
+                    lv_obj_set_state(dashboard_labels[i], SENSOR_HIGH_STATE);
+                }
+            }
+            else {
+                if (system_status.sensor[i].data < system_status.set_point.data) {
+                    lv_obj_set_state(dashboard_labels[i], SENSOR_LOW_STATE);
+                }
+                else {
+                    lv_obj_set_state(dashboard_labels[i], SENSOR_HIGH_STATE);
+                }
+                lv_obj_set_state(panel_sensor[i], LV_STATE_DEFAULT);
+            }
+        }
+    }
+
+    /* Only blink when warning */
+    if ((stop_time_blink > 0) && is_idle && (!is_warning)) {
+        stop_time_blink--;
+        lv_obj_set_hidden(panel_stop, dashboard_blink);
+        dashboard_blink = !dashboard_blink;
+    }
+}
+
 /******************************************************************************/
 
 /*!
@@ -327,14 +371,21 @@ void ui_big_number_loadscreen(void) {
  * @brief  Set menu text
  */
 void ui_big_number_set_menu_text(char *text) {
-    int16_t width = lv_obj_get_width(dashboard_labels[BIG_NUMBER_MENU]);
-    int16_t x = (316 - width) / 2;
-    
+    int16_t width, x;
     lv_label_set_text(dashboard_labels[BIG_NUMBER_MENU], text);
-    lv_obj_align(dashboard_labels[BIG_NUMBER_MENU], NULL, LV_ALIGN_IN_TOP_LEFT, x, lv_obj_get_y(dashboard_labels[BIG_NUMBER_MENU]));
-    lv_obj_set_state(dashboard_labels[BIG_NUMBER_MENU], LV_STATE_DEFAULT);
+
+    if (strlen(text) > 2) {
+        width = lv_obj_get_width(dashboard_labels[BIG_NUMBER_MENU]);
+        x = (316 - width) / 2;
         
-    ui_big_number_set_idle(false);
+        lv_obj_align(dashboard_labels[BIG_NUMBER_MENU], NULL, LV_ALIGN_IN_TOP_LEFT, x, lv_obj_get_y(dashboard_labels[BIG_NUMBER_MENU]));
+        lv_obj_set_state(dashboard_labels[BIG_NUMBER_MENU], LV_STATE_DEFAULT);
+        is_idle = false;
+    }
+    else {
+        is_idle = true;
+    }
+    ui_big_number_set_idle(is_idle);
 }
 
 /**
@@ -491,47 +542,7 @@ void ui_big_number_update(void) {
         }
         is_idle = true;    /* ui_big_number_set_menu_text change is_idle so we change it back */
     }
-}
 
-/**
- * @brief  Update blink (should call every 500ms)
- */
-void ui_big_number_blink(void) {
-    int i;
-
-    warining_timeout++;
-    if (warining_timeout > 12) {
-        warining_timeout = 0;
-    }
-
-    for (i = 0; i < O2_SENSOR_NUM; i++) {
-        if (system_status.sensor[i].blink) {
-            if (dashboard_blink) {
-                if (system_status.sensor[i].data < system_status.set_point.data) {
-                    lv_obj_set_state(panel_sensor[i], SENSOR_LOW_STATE);
-                    lv_obj_set_state(dashboard_labels[i], SENSOR_LOW_STATE);
-                }
-                else {
-                    lv_obj_set_state(panel_sensor[i], SENSOR_HIGH_STATE);
-                    lv_obj_set_state(dashboard_labels[i], SENSOR_HIGH_STATE);
-                }
-            }
-            else {
-                if (system_status.sensor[i].data < system_status.set_point.data) {
-                    lv_obj_set_state(dashboard_labels[i], SENSOR_LOW_STATE);
-                }
-                else {
-                    lv_obj_set_state(dashboard_labels[i], SENSOR_HIGH_STATE);
-                }
-                lv_obj_set_state(panel_sensor[i], LV_STATE_DEFAULT);
-            }
-        }
-    }
-
-    /* Only blink when warning */
-    if ((stop_time_blink > 0) && is_idle && (!is_warning)) {
-        stop_time_blink--;
-        lv_obj_set_hidden(panel_stop, dashboard_blink);
-        dashboard_blink = !dashboard_blink;
-    }
+    /* Update blink components */
+    ui_big_number_blink();
 }

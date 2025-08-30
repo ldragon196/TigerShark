@@ -56,4 +56,7 @@ void main_process_1sec_event(void) {
 void main_process_init(void) {
     memset(&system_status, 0, sizeof(system_status_t));
     HAL_TIM_Base_Start_IT(&htim6);
+
+    system_status.set_point.data = system_config.set_point;
+    system_status.set_point.blink = false;
 }

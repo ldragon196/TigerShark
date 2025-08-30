@@ -14,6 +14,7 @@
 #include "log.h"
 #include "lv_port_disp.h"
 #include "power_manager.h"
+#include "user_intf.h"
 
 #include "ui_utils.h"
 #include "ui_splash.h"
@@ -48,7 +49,15 @@ static const osThreadAttr_t ui_control_task_attributes = {
 static osMutexId_t lvgl_mutex;
 
 static int ui_current_screen = SCREEN_INIT_ID;
-static bool load_home_screen = false;
+static uint8_t current_mode = SCREEN_MODE_COUNT;
+
+static const screen_mode_t screen_modes[SCREEN_MODE_COUNT] = {
+    /* BIG_NUMBER_MODE */ {ui_big_number_init, ui_big_number_loadscreen, ui_big_number_update},
+    /* OLD_MAN_MODE */
+    /* OLD_MAN_ADV_MODE */
+    /* FIXED_SET_POINT_MODE */
+    /* LEGACY_MODE */
+};
 
 /******************************************************************************/
 /*                              EXPORTED DATA                                 */
@@ -84,7 +93,11 @@ static void lvgl_task(void *argument) {
     /* Initialize screens */
     ui_utils_init();
     ui_splash_init();
-    ui_big_number_init();
+    for (int i = 0; i < SCREEN_MODE_COUNT; i++) {
+        if (screen_modes[i].init) {
+            screen_modes[i].init();
+        }
+    }
 
     ui_current_screen = SCREEN_SPLASH_ID;
     while (1) {
@@ -99,43 +112,59 @@ static void lvgl_task(void *argument) {
  * @brief  Task for ui control
  */
 static void ui_control_task(void *argument) {
+    int delay_time_ms = 100;
     (void) argument;
     LOG_INFO("UI control task started");
 
     while (1) {
+        osMutexAcquire(lvgl_mutex, osWaitForever);
         switch (ui_current_screen) {
-            case SCREEN_INIT_ID:
-                delay(100);    /* Wait for initialization */
-                break;
-
             case SCREEN_SPLASH_ID:
                 LOG_INFO("Loading splash screen...");
-                osMutexRelease(lvgl_mutex);
                 ui_splash_loadscreen();
-                delay(2000);    /* Wait for splash bar */
-
                 ui_current_screen = SCREEN_HOME_ID;
-                load_home_screen = true;
+                delay_time_ms = 2000;    /* Wait for splash bar */
                 break;
 
             case SCREEN_HOME_ID:
-                osMutexAcquire(lvgl_mutex, osWaitForever);
-                if (load_home_screen) {
-                    LOG_INFO("Loading home screen mode %d...", system_config.screen_mode);
-                    ui_big_number_loadscreen();
-                    load_home_screen = false;
+                /* When we change screen mode, we need to load it */
+                if ((current_mode != system_config.screen_mode) && (system_config.screen_mode < SCREEN_MODE_COUNT)) {
+                    current_mode = system_config.screen_mode;
+                    LOG_INFO("Loading home screen mode %d...", current_mode);
+                    if (screen_modes[current_mode].load) {
+                        screen_modes[current_mode].load();
+                    }
                 }
-                ui_big_number_update();
-                ui_big_number_blink();
-                osMutexRelease(lvgl_mutex);
-                delay(500);
+
+                /* Update screens */
+                if (screen_modes[current_mode].update) {
+                    screen_modes[current_mode].update();
+                }
+                delay_time_ms = 500;
                 break;
 
             default:
-                delay(1000);
+                delay_time_ms = 100;
                 break;
         }
+        osMutexRelease(lvgl_mutex);
+        
+        delay(delay_time_ms);
     }
+}
+
+/*!
+ * @brief  Handle button main pressed event
+ */
+void ui_control_button_main_pressed(void) {
+    ui_big_number_set_menu_text("SETPOINT 123");
+}
+
+/*!
+ * @brief  Handle button tap pressed event
+ */
+void ui_control_button_tap_pressed(void) {
+    ui_big_number_set_menu_text("LCD 50%");
 }
 
 /*!
@@ -146,4 +175,7 @@ void ui_control_init(void) {
     ui_control_task_handle = osThreadNew(ui_control_task, NULL, &ui_control_task_attributes);
     lvgl_task_handle = osThreadNew(lvgl_task, NULL, &lvgl_task_attributes);
     lvgl_mutex = osMutexNew(NULL);
+
+    user_intf_register_button_callback(BUTTON_MAIN, ui_control_button_main_pressed);
+    user_intf_register_button_callback(BUTTON_TAP, ui_control_button_tap_pressed);
 }

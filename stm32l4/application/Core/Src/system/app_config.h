@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "cmsis_os2.h"
 #include "system.h"
 
@@ -26,6 +27,8 @@
 
 #define APP_VERSION                  "2.01"
 #define DEVICE_NAME                  "TigerShark"
+
+#define SIMULATOR                    1   /* 1: for simulator, 0: for real hardware */
 
 #define delay(ms)                    osDelay(ms)
 #define current_ms()                 osKernelGetTickCount()
